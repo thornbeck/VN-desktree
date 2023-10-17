@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Table</title>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 50px 0;
+            font-size: 18px;
+            text-align: left;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<table>
+    <thead>
+        <tr>
+            <th>English</th>
+            <th>Vietnamese</th>
+        </tr>
+    </thead>
+    <tbody id="data-table">
+        <!-- Data will be populated here -->
+    </tbody>
+</table>
+
+<script>
+    // Function to fetch data from the API and populate the table
+    function fetchData() {
+        const url = "https://hrbot4.api.deskree.com/api/v1/rest/collections/vocabularys";
+        
+        fetch(url)
+            .then(response => response.json()) // Parse the JSON from the response
+            .then(responseData => {
+                const tableBody = document.getElementById('data-table');
+                const dataArray = responseData.data || [];
+
+                dataArray.forEach(item => {
+                    const attributes = item.attributes;
+
+                    const row = tableBody.insertRow();
+                    const englishCell = row.insertCell(0);
+                    const vietnameseCell = row.insertCell(1);
+
+                    englishCell.textContent = attributes.english;
+                    vietnameseCell.textContent = attributes.vietnamese;
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+
+    // Call the fetchData function once the page is loaded
+    window.onload = fetchData;
+</script>
+
+<!-- Add Vocabulary Form -->
+<div>
+    <h2>Add New Vocabulary</h2>
+    <label>
+        English: <input type="text" id="english-input">
+    </label>
+    <label>
+        Vietnamese: <input type="text" id="vietnamese-input">
+    </label>
+    <button onclick="addVocabulary()">Add</button>
+</div>
+
+<script>
+function addVocabulary() {
+    const englishInput = document.getElementById('english-input');
+    const vietnameseInput = document.getElementById('vietnamese-input');
+
+    const englishWord = englishInput.value;
+    const vietnameseWord = vietnameseInput.value;
+
+    if (!englishWord || !vietnameseWord) {
+        alert('Both fields must be filled out.');
+        return;
+    }
+
+    const url = "https://hrbot4.api.deskree.com/api/v1/rest/collections/vocabularys";
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            english: vietnameseWord, // Switched based on your provided structure
+            vietnamese: englishWord
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Failed to add vocabulary.');
+        }
+    })
+    .then(data => {
+        alert('Vocabulary added successfully!');
+        // Clear input fields
+        englishInput.value = '';
+        vietnameseInput.value = '';
+        // Refresh the table
+        fetchData();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to add vocabulary. Please try again.');
+    });
+}
+
+</script>
+
+
+</body>
+</html>
